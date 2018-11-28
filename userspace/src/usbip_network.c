@@ -14,10 +14,6 @@
 #include <unistd.h>
 #endif
 
-#ifndef EAI_SYSTEM
-#define EAI_SYSTEM -11
-#endif
-
 #include "usbip_common.h"
 #include "usbip_network.h"
 
@@ -64,7 +60,7 @@ void pack_usb_interface(int pack, struct usbip_usb_interface *udev)
 }
 
 
-static ssize_t usbip_xmit(int sockfd, void *buff, size_t bufflen, int sending)
+static ssize_t usbip_xmit(SOCKET sockfd, void *buff, int bufflen, int sending)
 {
 	ssize_t total = 0;
 
@@ -106,19 +102,19 @@ static ssize_t usbip_xmit(int sockfd, void *buff, size_t bufflen, int sending)
 	return total;
 }
 
-ssize_t usbip_recv(int sockfd, void *buff, size_t bufflen)
+ssize_t usbip_recv(SOCKET sockfd, void *buff, int bufflen)
 {
 	return usbip_xmit(sockfd, buff, bufflen, 0);
 }
 
-ssize_t usbip_send(int sockfd, void *buff, size_t bufflen)
+ssize_t usbip_send(SOCKET sockfd, void *buff, int bufflen)
 {
 	return usbip_xmit(sockfd, buff, bufflen, 1);
 }
 
-int usbip_send_op_common(int sockfd, uint32_t code, uint32_t status)
+int usbip_send_op_common(SOCKET sockfd, uint32_t code, uint32_t status)
 {
-	int ret;
+	ssize_t ret;
 	struct op_common op_common;
 
 	memset(&op_common, 0, sizeof(op_common));
@@ -138,16 +134,16 @@ int usbip_send_op_common(int sockfd, uint32_t code, uint32_t status)
 	return 0;
 }
 
-int usbip_recv_op_common(int sockfd, uint16_t *code)
+int usbip_recv_op_common(SOCKET sockfd, uint16_t *code)
 {
-	int ret;
+	ssize_t ret;
 	struct op_common op_common;
 
 	memset(&op_common, 0, sizeof(op_common));
 
 	ret = usbip_recv(sockfd, (void *) &op_common, sizeof(op_common));
 	if (ret < 0) {
-		err("usbip_recv has failed ret=%d", ret);
+		err("usbip_recv has failed ret=%d", (int)ret);
 		goto err;
 	}
 
@@ -181,7 +177,7 @@ err:
 }
 
 
-int usbip_set_reuseaddr(int sockfd)
+int usbip_set_reuseaddr(SOCKET sockfd)
 {
 	const int val = 1;
 	int ret;
@@ -193,7 +189,7 @@ int usbip_set_reuseaddr(int sockfd)
 	return ret;
 }
 
-int usbip_set_nodelay(int sockfd)
+int usbip_set_nodelay(SOCKET sockfd)
 {
 	const int val = 1;
 	int ret;
@@ -205,7 +201,7 @@ int usbip_set_nodelay(int sockfd)
 	return ret;
 }
 
-int usbip_set_keepalive(int sockfd)
+int usbip_set_keepalive(SOCKET sockfd)
 {
 	const int val = 1;
 	int ret;
@@ -220,10 +216,10 @@ int usbip_set_keepalive(int sockfd)
 /*
  * IPv6 Ready
  */
-int usbip_net_tcp_connect(char *hostname, char *port)
+SOCKET usbip_net_tcp_connect(char *hostname, char *port)
 {
 	struct addrinfo hints, *res, *rp;
-	int sockfd;
+	SOCKET sockfd = INVALID_SOCKET;
 	int ret;
 
 	memset(&hints, 0, sizeof(hints));
@@ -232,17 +228,17 @@ int usbip_net_tcp_connect(char *hostname, char *port)
 
 	/* get all possible addresses */
 	ret = getaddrinfo(hostname, port, &hints, &res);
-	if (ret < 0) {
+	if (ret != 0) {
 		dbg("getaddrinfo: %s port %s: %s", hostname, port,
 		    gai_strerror(ret));
-		return ret;
+		return sockfd;
 	}
 
 	/* try the addresses */
 	for (rp = res; rp; rp = rp->ai_next) {
 		sockfd = socket(rp->ai_family, rp->ai_socktype,
 				rp->ai_protocol);
-		if (sockfd < 0)
+		if (sockfd == INVALID_SOCKET)
 			continue;
 
 		/* should set TCP_NODELAY for usbip */
@@ -250,7 +246,7 @@ int usbip_net_tcp_connect(char *hostname, char *port)
 		/* TODO: write code for heartbeat */
 		usbip_set_keepalive(sockfd);
 
-		if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) == 0)
+		if (connect(sockfd, rp->ai_addr, (int)rp->ai_addrlen) == 0)
 			break;
 
 #ifdef __linux__
@@ -261,7 +257,7 @@ int usbip_net_tcp_connect(char *hostname, char *port)
 	}
 
 	if (!rp)
-		return EAI_SYSTEM;
+		return SOCKET_ERROR;
 
 	freeaddrinfo(res);
 

@@ -53,7 +53,7 @@ void usbip_list_usage(void)
 	printf("usage: %s", usbip_list_usage_string);
 }
 
-static int query_exported_devices(int sockfd)
+static int query_exported_devices(SOCKET sockfd)
 {
 	int ret;
 	unsigned int i;
@@ -135,12 +135,12 @@ static int query_exported_devices(int sockfd)
 static int show_exported_devices(char *host)
 {
 	int ret;
-	int sockfd;
+	SOCKET sockfd;
 
 	sockfd = usbip_net_tcp_connect(host, USBIP_PORT_STRING);
-	if (sockfd < 0) {
+	if (!sockfd) {
 		err("unable to connect to %s port %s: %s\n", host,
-		    USBIP_PORT_STRING, gai_strerror(sockfd));
+		    USBIP_PORT_STRING, gai_strerror(WSAGetLastError()));
 		return -1;
 	}
 	dbg("connected to %s port %s\n", host, USBIP_PORT_STRING);

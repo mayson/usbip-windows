@@ -171,7 +171,7 @@ static int attach_device(char *host, char *busid)
 	int rhport;
 
 	sockfd = usbip_net_tcp_connect(host, USBIP_PORT_STRING);
-	if (sockfd < 0) {
+	if (!sockfd) {
 		err("tcp connect");
 		return -1;
 	}
