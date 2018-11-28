@@ -5,9 +5,7 @@
 #ifndef _USBIP_H
 #define _USBIP_H
 
-#ifdef HAVE_CONFIG_H
-#include "../config.h"
-#endif
+#include "../config_windows.h"
 
 #define UNUSED(x) (void)(x)
 

@@ -72,12 +72,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef REPLACE_GETOPT
 int	opterr = 1;		/* if error message should be printed */
 int	optind = 1;		/* index into parent argv vector */
 int	optopt = '?';		/* character checked for validity */
 char    *optarg = NULL;		/* argument associated with option */
-#endif
 int	optreset = 0;		/* reset getopt */
 
 #define PRINT_ERROR	((opterr) && (*options != ':'))
