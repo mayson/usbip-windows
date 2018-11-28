@@ -83,17 +83,17 @@ static ssize_t usbip_xmit(SOCKET sockfd, void *buff, int bufflen, int sending)
 			int err = WSAGetLastError();
 
 			if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL)) {
-				fprintf(stderr, "[usbip_xmit] recv() returned %d - error %d: %s\n", nbytes, err, lpMsgBuf);
+				fprintf(stderr, "[usbip_xmit] recv() returned %d - error %d: %s\n", (int)nbytes, err, lpMsgBuf);
 				LocalFree(lpMsgBuf);
 			} else {
-				fprintf(stderr, "[usbip_xmit] recv() returned %d - error %d\n", nbytes, err);
+				fprintf(stderr, "[usbip_xmit] recv() returned %d - error %d\n", (int)nbytes, err);
 			}
 #endif
 			return -1;
 		}
 
 		buff	= (void *) ((intptr_t) buff + nbytes);
-		bufflen	-= nbytes;
+		bufflen	-= (int)nbytes;
 		total	+= nbytes;
 
 	} while (bufflen > 0);
@@ -165,7 +165,7 @@ int usbip_recv_op_common(SOCKET sockfd, uint16_t *code)
 	}
 
 	if (op_common.status != ST_OK) {
-		info("request failed at peer, %d", op_common.status);
+		info("request failed at peer, %u", op_common.status);
 		goto err;
 	}
 

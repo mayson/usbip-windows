@@ -102,10 +102,10 @@ static const struct command cmds[] = {
 static int usbip_help(int argc, char *argv[])
 {
 	const struct command *cmd;
-	int i;
+	ssize_t i;
 	int ret = 0;
 
-	if (argc > 1 && argv++) {
+	if (argc > 1) {
 		for (i = 0; cmds[i].name != NULL; i++)
 			if (!strcmp(cmds[i].name, argv[0]) && cmds[i].usage) {
 				cmds[i].usage();
@@ -147,7 +147,8 @@ int main(int argc, char *argv[])
 	};
 	char *cmd;
 	int opt;
-	int i, rc = -1;
+	ssize_t i;
+	int rc = -1;
 
 #ifndef __linux__
 	if (init_socket())
@@ -171,12 +172,12 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	cmd = argv[optind];
+	cmd = argv[(ssize_t)optind];
 	if (cmd) {
 		for (i = 0; cmds[i].name != NULL; i++)
 			if (!strcmp(cmds[i].name, cmd)) {
 				argc -= optind;
-				argv += optind;
+				argv += (ssize_t)optind;
 				optind = 0;
 				rc = run_command(&cmds[i], argc, argv);
 				goto out;
