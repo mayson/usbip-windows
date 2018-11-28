@@ -309,7 +309,7 @@ static int new_vendor(const char *name, u_int16_t vendorid)
 	v = my_malloc(sizeof(struct vendor) + strlen(name));
 	if (!v)
 		return -1;
-	strcpy(v->name, name);
+	strcpy_s(v->name, sizeof(v->name), name);
 	v->vendorid = vendorid;
 	v->next = vendors[h];
 	vendors[h] = v;
@@ -328,7 +328,7 @@ static int new_product(const char *name, u_int16_t vendorid, u_int16_t productid
 	p = my_malloc(sizeof(struct product) + strlen(name));
 	if (!p)
 		return -1;
-	strcpy(p->name, name);
+	strcpy_s(p->name, sizeof(p->name), name);
 	p->vendorid = vendorid;
 	p->productid = productid;
 	p->next = products[h];
@@ -348,7 +348,7 @@ static int new_class(const char *name, u_int8_t classid)
 	c = my_malloc(sizeof(struct class) + strlen(name));
 	if (!c)
 		return -1;
-	strcpy(c->name, name);
+	strcpy_s(c->name, sizeof(c->name), name);
 	c->classid = classid;
 	c->next = classes[h];
 	classes[h] = c;
@@ -367,7 +367,7 @@ static int new_subclass(const char *name, u_int8_t classid, u_int8_t subclassid)
 	s = my_malloc(sizeof(struct subclass) + strlen(name));
 	if (!s)
 		return -1;
-	strcpy(s->name, name);
+	strcpy_s(s->name, sizeof(s->name), name);
 	s->classid = classid;
 	s->subclassid = subclassid;
 	s->next = subclasses[h];
@@ -387,7 +387,7 @@ static int new_protocol(const char *name, u_int8_t classid, u_int8_t subclassid,
 	p = my_malloc(sizeof(struct protocol) + strlen(name));
 	if (!p)
 		return -1;
-	strcpy(p->name, name);
+	strcpy_s(p->name, sizeof(p->name), name);
 	p->classid = classid;
 	p->subclassid = subclassid;
 	p->protocolid = protocolid;
@@ -408,7 +408,7 @@ static int new_audioterminal(const char *name, u_int16_t termt)
 	at = my_malloc(sizeof(struct audioterminal) + strlen(name));
 	if (!at)
 		return -1;
-	strcpy(at->name, name);
+	strcpy_s(at->name, sizeof(at->name), name);
 	at->termt = termt;
 	at->next = audioterminals[h];
 	audioterminals[h] = at;
@@ -426,7 +426,7 @@ static int new_genericstrtable(struct genericstrtable *t[HASHSZ], const char *na
         g = my_malloc(sizeof(struct genericstrtable) + strlen(name));
         if (!g)
                 return -1;
-        strcpy(g->name, name);
+        strcpy_s(g->name, sizeof(g->name), name);
         g->num = index;
         g->next = t[h];
         t[h] = g;
@@ -791,9 +791,11 @@ static void parse(FILE *f)
 int names_init(char *n)
 {
 	FILE *f;
+	errno_t err;
 
-	if (!(f = fopen(n, "r"))) {
-		return errno;
+	err = fopen_s(&f, n, "r");
+	if (err) {
+		return err;
 	}
 	parse(f);
 	fclose(f);
