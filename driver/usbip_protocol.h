@@ -10,7 +10,7 @@
 #else
 #define __attribute__(x) /* x */
 #endif
-#define USBIP_VERSION 0x000106
+#define USBIP_VERSION 0x000111
 
 /* -------------------------------------------------- */
 /* Define Protocol Format                             */
